@@ -24,9 +24,11 @@ class LocalTranslator:
             return False
 
         source_language = argostranslate.translate.get_language_from_code("pt")
-        return source_language is not None and any(
-            translation.to_code == "en"
-            for translation in source_language.translations
+        target_language = argostranslate.translate.get_language_from_code("en")
+        return (
+            source_language is not None
+            and target_language is not None
+            and source_language.get_translation(target_language) is not None
         )
 
     def install_model(self):
@@ -58,13 +60,12 @@ class LocalTranslator:
         if source_language is None:
             raise RuntimeError("O idioma português não está disponível.")
 
-        translation = next(
-            (
-                item
-                for item in source_language.translations
-                if item.to_code == "en"
-            ),
-            None
+        target_language = argostranslate.translate.get_language_from_code("en")
+        if target_language is None:
+            raise RuntimeError("O idioma inglês não está disponível.")
+
+        translation = source_language.get_translation(
+            target_language
         )
         if translation is None:
             raise RuntimeError(
